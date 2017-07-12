@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
@@ -13,10 +14,15 @@ import com.esri.arcgisruntime.data.Feature;
 import com.esri.arcgisruntime.data.FeatureQueryResult;
 import com.esri.arcgisruntime.data.QueryParameters;
 import com.esri.arcgisruntime.geometry.Envelope;
+import com.esri.arcgisruntime.geometry.GeometryEngine;
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.layers.FeatureLayer;
 import com.esri.arcgisruntime.loadable.LoadStatus;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.portal.Portal;
@@ -51,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         overlay = new GraphicsOverlay();
         // create simple renderer
         // red diamond point symbol
-        SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.DIAMOND, Color.RED, 10);
+        SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CROSS, Color.RED, 10);
         SimpleRenderer pointRenderer = new SimpleRenderer(pointSymbol);
         overlay.setRenderer(pointRenderer);
 
@@ -154,6 +160,11 @@ public class MainActivity extends AppCompatActivity {
         startGPSTracking();
     }
 
+    public void callTaxi(View v){
+        String message="Taxi ist auf dem Weg!";
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    }
+
     private void startGPSTracking(){
         new Thread(new Runnable() {
             @Override
@@ -162,15 +173,33 @@ public class MainActivity extends AppCompatActivity {
                     BufferedReader reader = new BufferedReader(
                             new InputStreamReader(getAssets().open("gps.txt")));
                     String line="";
+                    int i=0;
                     while ((line=reader.readLine())!=null){
-                        final String gpsText=line;
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-                                Toast.makeText(getApplicationContext(), gpsText, Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        String coords []=line.split(" ");
+                        double x=Double.parseDouble(coords[0]);
+                        double y=Double.parseDouble(coords[1]);
+                        Point pointGeometry = new Point( y, x, SpatialReferences.getWgs84());
+                        SpatialReference reference=mMapView.getSpatialReference();
+                        int wkid=reference.getWkid();
+                        Point position=(Point)GeometryEngine.project(pointGeometry, SpatialReferences.getWebMercator());
 
-                        Thread.sleep(5000);
+                        // create graphic for point
+                        Graphic pointGraphic = new Graphic(position);
+                        overlay.getGraphics().add(pointGraphic);
+                        final String gpsText=line;
+                        if (i==8){
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    String message="Warnung: Betreten des Stadtgebiets Bochum Mitte auf eigene Gefahr.";
+                                    Button btn=(Button)findViewById(R.id.taxiButton);
+                                    btn.setVisibility(View.VISIBLE);
+                                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                                }
+                            });
+                        }
+
+                        i++;
+                        Thread.sleep(3000);
                     }
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();

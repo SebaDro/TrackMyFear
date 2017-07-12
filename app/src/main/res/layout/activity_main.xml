@@ -21,4 +21,14 @@
         android:layout_height="wrap_content"
         android:text="Track position"
         />
+    <Button
+        android:id="@+id/taxiButton"
+        android:onClick="callTaxi"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Taxi rufen!"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:visibility="invisible"
+        />
 </RelativeLayout>
