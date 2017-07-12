@@ -9,8 +9,16 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="fbg.hsbo.de.trackmyfear.MainActivity">
 
-    <TextView
+    <com.esri.arcgisruntime.mapping.view.MapView
+        android:id="@+id/mapView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        >
+    </com.esri.arcgisruntime.mapping.view.MapView>
+    <Button
+        android:onClick="clickTrackPosition"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="Track position"
+        />
 </RelativeLayout>
